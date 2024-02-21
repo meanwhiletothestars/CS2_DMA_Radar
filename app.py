@@ -9,6 +9,13 @@ import threading
 import memprocfs
 
 
+########## ADJUST SIZES HERE ##########
+
+triangle_length = 13
+circle_size = 7 # 8 too big
+hp_font_size = 18
+rot_angle = 0
+
 #######################################
 
 maps_with_split = ['de_nuke','de_vertigo']
