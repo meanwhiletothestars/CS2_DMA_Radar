@@ -6,6 +6,7 @@ import struct
 import math
 import time
 import threading
+import memprocfs
 
 
 
