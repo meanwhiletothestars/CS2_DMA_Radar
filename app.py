@@ -84,6 +84,7 @@ def rotate_image(image, angle):
     return rotated_image, new_rect
 
 def getentitys():
+    vmmon()
     entitys = []
     for entityId in range(1,2048):
         EntityENTRY = struct.unpack("<Q", cs2.memory.read((entList + 0x8 * (entityId >> 9) + 0x10), 8, memprocfs.FLAG_NOCACHE))[0]
@@ -139,5 +140,4 @@ def players():
     return jsonify(players_data)
 
 if __name__ == '__main__':
-    vmmon()
     app.run(debug=True)
