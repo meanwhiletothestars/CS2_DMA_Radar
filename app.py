@@ -1,11 +1,22 @@
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.urls import path
 import json
 import struct
 import math
 import time
 import threading
 
+
+
+vmm = memprocfs.Vmm(['-device', 'fpga', '-disable-python', '-disable-symbols', '-disable-symbolserver', '-disable-yara', '-disable-yara-builtin', '-debug-pte-quality-threshold', '64'])
+cs2 = vmm.process('cs2.exe')
+client = cs2.module('client.dll')
+client_base = client.base
+print(f"[+] Finded client base")
+
+entList = struct.unpack("<Q", cs2.memory.read(client_base + dwEntityList, 8, memprocfs.FLAG_NOCACHE))[0]
+print(f"[+] Entered entitylist")
 class player1:
     def __init__(self, entity_id):
         self.entity_id = entity_id
