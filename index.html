@@ -1,0 +1,18 @@
+<!-- index.html -->
+<html>
+<body>
+    <img id="map" src="/static/path/to/your/image.png" style="position: relative;">
+    <div id="models"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        var models = {{ models|safe }};
+        for (var i = 0; i < models.length; i++) {
+            var model = models[i];
+            $('#models').append('<img src="' + model.image + '" style="position: absolute; left: ' + model.x + 'px; top: ' + model.y + 'px;">');
+        }
+    });
+    </script>
+</body>
+</html>
