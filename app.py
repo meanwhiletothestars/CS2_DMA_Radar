@@ -116,15 +116,23 @@ class player1:
             'team': self.team,
             'eye_angles': self.EyeAngles
         }
+def get_players_data():
+    entities = getentitys()
+    players = [player1(entity_id).to_dict() for entity_id in entities]
+    return players
+
+vmm = memprocfs.Vmm(['-device', 'fpga', '-disable-python', '-disable-symbols', '-disable-symbolserver', '-disable-yara', '-disable-yara-builtin', '-debug-pte-quality-threshold', '64'])
+cs2 = vmm.process('cs2.exe')
+client = cs2.module('client.dll')
+client_base = client.base
+print(f"[+] Finded client base")
+
+entList = struct.unpack("<Q", cs2.memory.read(client_base + dwEntityList, 8, memprocfs.FLAG_NOCACHE))[0]
+print(f"[+] Entered entitylist")
 
 app = Flask(__name__)
 
 
-# Пример данных игроков
-players = [
-    {"id": 1, "x": 100, "y": 150, "hp": 100, "team": "red"},
-    {"id": 2, "x": 200, "y": 300, "hp": 90, "team": "blue"}
-]
 
 @app.route('/')
 def index():
@@ -133,6 +141,11 @@ def index():
 @app.route('/data')
 def data():
     return jsonify(players)
+
+@app.route('/players')
+def players():
+    players_data = get_players_data()
+    return jsonify(players_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
