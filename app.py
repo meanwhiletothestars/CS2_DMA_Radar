@@ -42,11 +42,13 @@ zoom_scale = 2
 vmm = memprocfs.Vmm(['-device', 'fpga', '-disable-python', '-disable-symbols', '-disable-symbolserver', '-disable-yara', '-disable-yara-builtin', '-debug-pte-quality-threshold', '64'])
 cs2 = vmm.process('cs2.exe')
 client = cs2.module('client.dll')
+
 client_base = client.base
 print(f"[+] Finded client base")
 
 entList = struct.unpack("<Q", cs2.memory.read(client_base + dwEntityList, 8, memprocfs.FLAG_NOCACHE))[0]
 print(f"[+] Entered entitylist")
+time.sleep(2)
 
 
 def world_to_minimap(x, y, pos_x, pos_y, scale, map_image, screen, zoom_scale, rotation_angle):
@@ -150,4 +152,3 @@ def players():
 
 if __name__ == '__main__':
     app.run(debug=True)
-vmm.close()
