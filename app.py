@@ -1,13 +1,14 @@
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.urls import path
-import json
-import struct
-import math
-import time
-import threading
+from flask import Flask, render_template, jsonify
 import memprocfs
-
+import struct
+import time
+import pygame
+import pygame_gui
+import json
+import math
+import numpy as np
+import os
+import re
 
 ########## ADJUST SIZES HERE ##########
 
@@ -36,17 +37,50 @@ mapNameVal = 0x1D2300
 
 #######################################
 
-vmm = memprocfs.Vmm(['-device', 'fpga', '-disable-python', '-disable-symbols', '-disable-symbolserver', '-disable-yara', '-disable-yara-builtin', '-debug-pte-quality-threshold', '64'])
-cs2 = vmm.process('cs2.exe')
-client = cs2.module('client.dll')
-client_base = client.base
-print(f"[+] Finded client base")
+zoom_scale = 2
 
-entList = struct.unpack("<Q", cs2.memory.read(client_base + dwEntityList, 8, memprocfs.FLAG_NOCACHE))[0]
-print(f"[+] Entered entitylist")
-class player1:
-    def __init__(self, entity_id):
-        self.entity_id = entity_id
+
+def world_to_minimap(x, y, pos_x, pos_y, scale, map_image, screen, zoom_scale, rotation_angle):
+    image_x = int((x - pos_x) * screen.get_width() / (map_image.get_width() * scale * zoom_scale))
+    image_y = int((y - pos_y) * screen.get_height() / (map_image.get_height() * scale * zoom_scale))
+    center_x, center_y = screen.get_width() // 2, screen.get_height() // 2
+    image_x, image_y = rotate_point((center_x, center_y), (image_x, image_y), rotation_angle)
+    return int(image_x), int(image_y)
+
+def rotate_point(center, point, angle):
+    angle_rad = math.radians(angle)
+    temp_point = point[0] - center[0], center[1] - point[1]
+    temp_point = (temp_point[0]*math.cos(angle_rad)-temp_point[1]*math.sin(angle_rad), temp_point[0]*math.sin(angle_rad)+temp_point[1]*math.cos(angle_rad))
+    temp_point = temp_point[0] + center[0], center[1] - temp_point[1]
+    return temp_point
+
+def getmapdata(mapname):
+    with open(f'maps/{mapname}/meta.json', 'r') as f:
+        data = json.load(f)
+    scale = data['scale']
+    x = data['offset']['x']
+    y = data['offset']['y']
+    return scale,x,y
+
+def getlowermapdata(mapname):
+    with open(f'maps/{mapname}/meta.json', 'r') as f:
+        data = json.load(f)
+    lowerx = data['splits']['offset']['x']
+    lowery = data['splits']['offset']['y']
+    z = data['splits']['zRange']['z']
+    return lowerx,lowery,z
+
+def readmapfrommem():
+    mapNameAddress_dll = cs2.module('matchmaking.dll')
+    mapNameAddressbase = mapNameAddress_dll.base
+    mapNameAddress = struct.unpack("<Q", cs2.memory.read(mapNameAddressbase + mapNameVal, 8, memprocfs.FLAG_NOCACHE))[0]
+    mapName = struct.unpack("<32s", cs2.memory.read(mapNameAddress+0x4, 32, memprocfs.FLAG_NOCACHE))[0].decode('utf-8', 'ignore')
+    return str(mapName)
+
+def rotate_image(image, angle):
+    rotated_image = pygame.transform.rotate(image, angle)
+    new_rect = rotated_image.get_rect(center = image.get_rect().center)
+    return rotated_image, new_rect
 
 def getentitys():
     entitys = []
@@ -57,80 +91,48 @@ def getentitys():
             entityHp = struct.unpack("<I", cs2.memory.read(entity + m_iHealth, 4, memprocfs.FLAG_NOCACHE))[0]
             if entityHp>0 and entityHp<=100:
                 entitys.append(entity)
+            else:
+                pass
         except:
             pass
-    return entitys
+    return(entitys)
 
-def update_data(player):
-    player.pX = struct.unpack("<f", cs2.memory.read(player.entity_id + m_vOldOrigin +0x4, 4, memprocfs.FLAG_NOCACHE))[0]
-    player.pY = struct.unpack("<f", cs2.memory.read(player.entity_id + m_vOldOrigin, 4, memprocfs.FLAG_NOCACHE))[0]
-    player.pZ = struct.unpack("<f", cs2.memory.read(player.entity_id + m_vOldOrigin +0x8, 4, memprocfs.FLAG_NOCACHE))[0]
-    player.Hp = struct.unpack("<I", cs2.memory.read(player.entity_id + m_iHealth, 4, memprocfs.FLAG_NOCACHE))[0]
-    player.team = struct.unpack("<I", cs2.memory.read(player.entity_id + m_iTeamNum, 4, memprocfs.FLAG_NOCACHE))[0]
-    player.EyeAngles = struct.unpack("<fff", cs2.memory.read(player.entity_id +(m_angEyeAngles +0x4) , 12, memprocfs.FLAG_NOCACHE))
-    player.EyeAngles = math.radians(player.EyeAngles[0]+rot_angle)
+class player1:
+    def __init__(self, entity_id):
+        self.entity_id = entity_id
+        self.pX = struct.unpack("<f", cs2.memory.read(entity_id + m_vOldOrigin +0x4, 4, memprocfs.FLAG_NOCACHE))[0]
+        self.pY = struct.unpack("<f", cs2.memory.read(entity_id + m_vOldOrigin, 4, memprocfs.FLAG_NOCACHE))[0]
+        self.pZ = struct.unpack("<f", cs2.memory.read(entity_id + m_vOldOrigin +0x8, 4, memprocfs.FLAG_NOCACHE))[0]
+        self.Hp = struct.unpack("<I", cs2.memory.read(entity_id + m_iHealth, 4, memprocfs.FLAG_NOCACHE))[0]
+        self.team = struct.unpack("<I", cs2.memory.read(entity_id + m_iTeamNum, 4, memprocfs.FLAG_NOCACHE))[0]
+        self.EyeAngles = struct.unpack("<fff", cs2.memory.read(entity_id +(m_angEyeAngles +0x4) , 12, memprocfs.FLAG_NOCACHE))
+        self.EyeAngles = math.radians(self.EyeAngles[0]+rot_angle)
 
-def update_loop():
-    while True:
-        entity_ids = getentitys()
-        for entity_id in entity_ids:
-            player = player1(entity_id)
-            update_data(player)
-
-update_thread = threading.Thread(target=update_loop)
-update_thread.start()
-
-@csrf_exempt
-def game_view(request):
-    if request.method == 'GET':
-        html = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>CS2 Game</title>
-            <style>
-                #game {
-                    position: relative;
-                    width: 1024px;
-                    height: 1024px;
-                    background-image: url('/maps/de_mirage/radar.png');
-                }
-                .player {
-                    position: absolute;
-                    width: 10px;
-                    height: 10px;
-                }
-                .team2 {
-                    background-color: red;
-                }
-                .team3 {
-                    background-color: blue;
-                }
-            </style>
-        </head>
-        <body>
-            <div id="game"></div>
-            <script src="/static/js/game.js"></script>
-        </body>
-        </html>
-        """
-        return HttpResponse(html)
-    elif request.method == 'POST':
-        data = {
-            'players': [
-                {
-                    'pX': player.pX,
-                    'pY': player.pY,
-                    'pZ': player.pZ,
-                    'Hp': player.Hp,
-                    'team': player.team,
-                    'EyeAngles': player.EyeAngles
-                }
-                for player in players
-            ]
+    def to_dict(self):
+        return {
+            'entity_id': self.entity_id,
+            'position': {'x': self.pX, 'y': self.pY, 'z': self.pZ},
+            'hp': self.Hp,
+            'team': self.team,
+            'eye_angles': self.EyeAngles
         }
-        return HttpResponse(json.dumps(data), content_type='application/json')
 
-urlpatterns = [
-    path('game/', game_view, name='game'),
+app = Flask(__name__)
+
+
+# Пример данных игроков
+players = [
+    {"id": 1, "x": 100, "y": 150, "hp": 100, "team": "red"},
+    {"id": 2, "x": 200, "y": 300, "hp": 90, "team": "blue"}
 ]
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/data')
+def data():
+    return jsonify(players)
+
+if __name__ == '__main__':
+    app.run(debug=True)
