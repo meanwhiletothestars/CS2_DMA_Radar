@@ -96,7 +96,7 @@ html_content = """
         var ws = new WebSocket("ws://localhost:8000/ws");
         ws.onmessage = function(event) {
             let sus = event.data;
-            document.getElementById("data").innerText = sus;
+            console.log(sus)
         };
     </script>
 </body>
