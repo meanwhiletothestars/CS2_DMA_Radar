@@ -64,52 +64,12 @@ html_content = """
 </head>
 <body>
     <div id="data"></div>
-    <canvas id="mapCanvas" width="1024" height="1024"></canvas>
-    <img id="radarImage" src="" alt="Radar Image">
     <script>
         var ws = new WebSocket("ws://localhost:8000/ws");
-        var rot_angle = 0; // Add rotation angle here
-        var canvas = document.getElementById("mapCanvas");
-        var ctx = canvas.getContext("2d");
-        
-        function rotate_point(center, point, angle) {
-            angle_rad = Math.radians(angle);
-            temp_point = [point[0] - center[0], center[1] - point[1]];
-            temp_point = [temp_point[0]*Math.cos(angle_rad)-temp_point[1]*Math.sin(angle_rad), temp_point[0]*Math.sin(angle_rad)+temp_point[1]*Math.cos(angle_rad)];
-            temp_point = [temp_point[0] + center[0], center[1] - temp_point[1]];
-            return temp_point;
-        }
-        
         ws.onmessage = function(event) {
-            let jsondata = JSON.parse(event.data);
-            let mapName = jsondata.WorldInfo.Map;
-            let radarImage = document.getElementById("radarImage");
-            radarImage.src = `/maps/${mapName}/radar.png`;
-            
-            let players = jsondata.Players;
-            for (let player in players) {
-                let pX = players[player].pX;
-                let pY = players[player].pY;
-                let x = players[player].x;
-                let y = players[player].y;
-                let scale = players[player].scale;
-                
-                let image_x = parseInt((pX - x) * window.innerWidth / (1024 * scale * 2));
-                let image_y = parseInt((pY - y) * window.innerHeight / (1024 * scale * 2));
-                let center_x = Math.floor(window.innerHeight / 2);
-                let center_y = Math.floor(window.innerWidth / 2);
-                let coords = rotate_point([center_x, center_y], [image_x, image_y], rot_angle);
-                
-                // Draw player at coords on the canvas
-                ctx.beginPath();
-                ctx.arc(coords[0], coords[1], 10, 0, 2 * Math.PI, false);
-                ctx.fillStyle = 'green';
-                ctx.fill();
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = '#003300';
-                ctx.stroke();
-            }
-        }
+            let sus = event.data;
+            console.log(sus)
+        };
     </script>
 </body>
 </html>
