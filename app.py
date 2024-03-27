@@ -96,7 +96,7 @@ html_content = """
         var ws = new WebSocket("ws://localhost:8000/ws");
         ws.onmessage = function(event) {
             let sus = event.data;
-            console.log(sus)
+            document.getElementById("data").innerText = sus;
         };
     </script>
 </body>
@@ -399,7 +399,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     #except:
                         #continue
                 rawjsondata_str = str(rawjsondata)
-                await websocket.send_text(rawjsondata_str)
+                await websocket.send_text(rawjsondata_str.encode())
                 print('data sended')
             #except Exception as e:
                 #print(e)
