@@ -2,6 +2,34 @@ from fastapi import FastAPI, WebSocket, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 import asyncio
+import memprocfs
+import struct
+import time
+import pygame
+import pygame_gui
+import json
+import math
+import numpy as np
+import os
+import re
+from requests import get
+import threading
+import random
+from pygame.locals import *
+
+
+with open(f'config.json', 'r') as f:
+    settings = json.load(f)
+
+triangle_length = settings['triangle_length']
+circle_size = settings['circle_size']
+hp_font_size = settings['hp_font_size']
+rot_angle = settings['rot_angle']
+cross_size = settings['cross_size']
+teammate_setting = settings['teammates']
+altgirlpic_instead_nomappic = settings['altgirlpic_instead_nomappic']
+update_offsets = settings['update_offsets']
+maxclients = int(settings['maxclients'])
 
 #######################################
 
