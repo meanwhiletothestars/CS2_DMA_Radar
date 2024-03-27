@@ -355,33 +355,33 @@ async def websocket_endpoint(websocket: WebSocket):
                                     pass
                             else:
                                 pass
-                            if teammate_setting == 2:
-                                if team == playerTeam:
-                                    color = struct.unpack("<I", cs2.memory.read(EntityAddress + m_iCompTeammateColor, 4, memprocfs.FLAG_NOCACHE))[0]
-                                elif team != playerTeam:
-                                    color = 6
-                                    name = read_string_memory(EntityAddress + m_iszPlayerName)
-                                    weapon = get_weapon(entity_id)
-                            elif teammate_setting == 1:
-                                if team == playerTeam:
-                                    color = 7
-                                elif team != playerTeam:
-                                    color = 6
-                                    name = read_string_memory(EntityAddress + m_iszPlayerName)
-                                    weapon = get_weapon(entity_id)
-                                    wepname.append((name, weapon))
-                            elif teammate_setting == 0:
-                                if entity_id == playerpawn:
-                                    color = 7
-                                elif team == playerTeam:
-                                    ForbidWrite = False
-                                elif team != playerTeam:
-                                    color = 6
-                                    name = read_string_memory(EntityAddress + m_iszPlayerName)
-                                    weapon = get_weapon(entity_id)
+                            if team == playerTeam:   
+                                if teammate_setting == 2:
+                                    if team == playerTeam:
+                                        color = struct.unpack("<I", cs2.memory.read(EntityAddress + m_iCompTeammateColor, 4, memprocfs.FLAG_NOCACHE))[0]
+                                    else:
+                                        color = 6
+                                        name = read_string_memory(EntityAddress + m_iszPlayerName)
+                                        weapon = get_weapon(entity_id)
+                                elif teammate_setting == 1:
+                                    if team == playerTeam:
+                                        color = 7
+                                    elif team != playerTeam:
+                                        color = 6
+                                        name = read_string_memory(EntityAddress + m_iszPlayerName)
+                                        weapon = get_weapon(entity_id)
+                                elif teammate_setting == 0:
+                                    if entity_id == playerpawn:
+                                        color = 7
+                                    elif team == playerTeam:
+                                        ForbidWrite = False
+                                    elif team != playerTeam:
+                                        color = 6
+                                        name = read_string_memory(EntityAddress + m_iszPlayerName)
+                                        weapon = get_weapon(entity_id)
                             if isdefusing == 1:
                                 isdefusing = True
-                        if Hp != 0:
+                        if not ForbidWrite:
                             player_data = {
                                 "pX": str(pX),
                                 "pY": str(pY),
