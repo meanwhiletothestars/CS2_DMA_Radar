@@ -398,8 +398,7 @@ async def websocket_endpoint(websocket: WebSocket):
                             rawjsondata["Players"][str(i)] = player_data
                     #except:
                         #continue
-                print(rawjsondata)
-                websocket.send_text(rawjsondata)
+                await websocket.send_text(rawjsondata)
                 print('data sended')
             #except Exception as e:
                 #print(e)
