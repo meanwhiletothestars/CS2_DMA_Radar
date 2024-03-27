@@ -396,10 +396,9 @@ async def websocket_endpoint(websocket: WebSocket):
                                 "Weapon": str(weapon)
                             }
                             rawjsondata["Players"][str(i)] = player_data
-                            print(rawjsondata)
-                            print(player_data)
                     #except:
                         #continue
+                print(rawjsondata)
                 await websocket.send_text(rawjsondata)
                 print('data sended')
             #except Exception as e:
