@@ -307,7 +307,7 @@ EntityList = struct.unpack("<Q", cs2.memory.read(EntityList + 0x10, 8, memprocfs
 async def get_root():
     return HTMLResponse(content=html_content)
 
-@app.websocket("/ws")3
+@app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     while True:
