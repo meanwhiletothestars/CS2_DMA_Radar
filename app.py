@@ -307,7 +307,7 @@ EntityList = struct.unpack("<Q", cs2.memory.read(EntityList + 0x10, 8, memprocfs
 async def get_root():
     return HTMLResponse(content=html_content)
 
-@app.websocket("/ws")
+@app.websocket("/ws")3
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     while True:
@@ -398,7 +398,8 @@ async def websocket_endpoint(websocket: WebSocket):
                             rawjsondata["Players"][str(i)] = player_data
                     #except:
                         #continue
-                await websocket.send_text(rawjsondata)
+                rawjsondata_str = json.dumps(rawjsondata)
+                await websocket.send_text(rawjsondata_str.encode())
                 print('data sended')
             #except Exception as e:
                 #print(e)
