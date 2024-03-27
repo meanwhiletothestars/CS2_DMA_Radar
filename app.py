@@ -332,7 +332,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 EntityPawnListEntry = struct.unpack("<Q", cs2.memory.read(client_base + dwEntityList, 8, memprocfs.FLAG_NOCACHE))[0]
                 for i in range(maxclients):
                     if 1==1:
-                        ForbidWrite = True
+                        ForbidWrite = False
                         weapon = 'None'
                         EntityAddress = struct.unpack("<Q", cs2.memory.read(EntityList + (i + 1) * 0x78, 8, memprocfs.FLAG_NOCACHE))[0]
                         Pawn = struct.unpack("<Q", cs2.memory.read(EntityAddress + m_hPlayerPawn, 8, memprocfs.FLAG_NOCACHE))[0]
@@ -374,7 +374,7 @@ async def websocket_endpoint(websocket: WebSocket):
                                     if entity_id == playerpawn:
                                         color = 7
                                     elif team == playerTeam:
-                                        ForbidWrite = False
+                                        ForbidWrite = True
                                     elif team != playerTeam:
                                         color = 6
                                         name = read_string_memory(EntityAddress + m_iszPlayerName)
