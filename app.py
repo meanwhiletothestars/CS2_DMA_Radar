@@ -399,7 +399,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     #except:
                         #continue
                 print(rawjsondata)
-                await websocket.send_text(rawjsondata)
+                websocket.send_text(rawjsondata)
                 print('data sended')
             #except Exception as e:
                 #print(e)
