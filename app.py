@@ -95,14 +95,14 @@ html_content = """
     <script>
         var ws = new WebSocket("ws://localhost:8000/ws");
         ws.onmessage = function(event) {
-            let sus = event.data;
-            document.getElementById("data").innerText = sus;
+            let jsonData = JSON.parse(event.data);
+            let formattedData = JSON.stringify(jsonData, null, 2); // Pretty print JSON data
+            document.getElementById("data").innerText = formattedData;
         };
     </script>
 </body>
 </html>
 """
-
 zoom_scale = 2
 map_folders = [f for f in os.listdir('maps') if os.path.isdir(os.path.join('maps', f))]
 global_entity_list = []
